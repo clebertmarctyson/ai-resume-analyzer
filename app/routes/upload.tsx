@@ -3,15 +3,33 @@ import NavBar from "~/components/NavBar";
 import FileUploader from "~/components/FileUploader";
 import {usePuterStore} from "~/lib/puter";
 import {convertPdfToImage} from "~/lib/pdfToImage";
-import {generateUUID} from "~/utils"
+import {generateUUID} from "~/lib/utils"
 import {prepareInstructions} from "../../constants";
 import {useNavigate} from "react-router";
 
-type ResumeData = {
+export const meta = () => {
+    return [
+        { title: "Resumind | Upload Resume" },
+        { name: "description", description: "Upload Your Resume" }
+    ]
+}
+
+type ResumeFormType = {
     companyName: string;
     jobTitle: string;
     jobDescription: string;
-    file: File
+    file: File | null;
+}
+
+type ResumeDataType = {
+    id: string;
+    resumePath: string;
+    imagePath: string;
+    companyName: string;
+    jobTitle: string;
+    jobDescription: string;
+    feedback?: string;
+    file?: File | null;
 }
 
 const Upload = () => {
@@ -25,9 +43,9 @@ const Upload = () => {
         setFile(file);
     }
 
-    const handleAnalyse = async (resumeData: ResumeData) => {
+    const handleAnalyse = async (resumeFormData: ResumeFormType) => {
 
-        const { companyName, jobTitle, jobDescription} = resumeData;
+        const { companyName, jobTitle, jobDescription} = resumeFormData;
 
         setIsProcessing(true);
 
@@ -53,12 +71,11 @@ const Upload = () => {
 
         const uuid = await generateUUID();
 
-        const data ={
+        const data: ResumeDataType = {
             id: uuid,
             resumePath: uploadedFile.path,
             imagePath: uploadedImage.path,
-            companyName, jobTitle, jobDescription,
-            feedback: ''
+            companyName, jobTitle, jobDescription
         }
 
         await kv.set(`resume:${data.id}`, JSON.stringify(data));
@@ -82,11 +99,9 @@ const Upload = () => {
 
         setStatusText("Analisis complete! Redirecting...");
 
-        console.log(data);
-
         setIsProcessing(false);
 
-        // navigate("/");
+        navigate(`/resume/${data.id}`);
     }
 
 
@@ -97,8 +112,6 @@ const Upload = () => {
         if (!form) return;
 
         const formData = new FormData(form);
-
-        // const { get } = formData;
 
         const companyName = formData.get("company-name") as string;
         const jobTitle = formData.get("job-title") as string;
