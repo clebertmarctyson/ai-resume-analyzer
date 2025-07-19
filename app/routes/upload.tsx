@@ -69,7 +69,7 @@ const Upload = () => {
 
         setStatusText("Preparing data...");
 
-        const uuid = await generateUUID();
+        const uuid = generateUUID();
 
         const data: ResumeDataType = {
             id: uuid,
